@@ -42,17 +42,17 @@ SELECT EOMONTH(GETDATE())
 
 SELECT DATEFROMPARTS(YEAR(GETDATE()),12,31)
 
--- додавання нулів перед значенням
+-- add zero symbols before value
 SELECT p.productid,
 	   --ISNULL(REPLICATE('0', 10 - LEN(CAST(p.productid AS VARCHAR))),'') + CAST(p.productid AS VARCHAR)
 	   --RIGHT(REPLICATE('0',10) + CAST(p.productid AS VARCHAR), 10)
 	   FORMAT(p.productid, 'd10') 
 FROM TSQLFundamentals2008.Production.Products AS p
 
--- Предикати
--- TRUE: коли два операнди не NULL-значення і рівні, наприклад WA i WA
--- FALSE : коли два операнди не NULL i не рівні, наприклад OR i WA
--- НЕВІДОМЕ ЗНАЧЕННЯ : коли хоч один операнд NULL, або два операнди NULL (NULL = NULL -> невідомо)
+-- Predicates
+-- TRUE: when two operandes is not NULL and equal, ex. WA and WA
+-- FALSE : where two operandes is not NULL and not equal, ex. OR and WA
+-- UNKNOWN VALUE : where at least one operand is NULL or two operandes is NULLs (NULL = NULL -> unknown value) 
 SELECT e.empid,e.firstname,e.lastname,e.country,e.region,e.city
 FROM TSQLFundamentals2008.HR.Employees AS e
 WHERE e.region <> N'WA'
