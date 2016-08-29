@@ -21,18 +21,18 @@ DECLARE @date DATEtime = GETDATE()
 SET @d = @date
 SELECT @d
 
--- ‘ункц≥њ
-SELECT DATEADD(mm,DATEDIFF(mm,0,GETDATE()),0) -- перший день поточного м≥с€ц€
+-- Functions
+SELECT DATEADD(mm,DATEDIFF(mm,0,GETDATE()),0) -- the first day of the month
 
-SELECT DATEADD(dd,-1,DATEADD(mm,DATEDIFF(mm,0,GETDATE()) + 1,0)) -- останн≥й день поточного м≥с€ц€
+SELECT DATEADD(dd,-1,DATEADD(mm,DATEDIFF(mm,0,GETDATE()) + 1,0)) -- the last day of the month
 
--- виб≥рка даних з таблиц≥ в строку
+-- create string from table rows information
 DECLARE @names VARCHAR(100) = NULL;
 SELECT @names = COALESCE(@names + ',','') + e.firstname --@names = @names + COALESCE(e.firstname + ',','')
 FROM TSQLFundamentals2008.HR.Employees AS e;
 SELECT @names
 
--- довжина строки в символах ≥ байтах
+-- string len in bytes and symbols
 DECLARE @fullname VARCHAR(100) = 'Bohdan Chornii';
 SELECT LEN(@fullname)
 SELECT DATALENGTH(@fullname)
