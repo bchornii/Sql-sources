@@ -57,15 +57,15 @@ SELECT e.empid,e.firstname,e.lastname,e.country,e.region,e.city
 FROM TSQLFundamentals2008.HR.Employees AS e
 WHERE e.region <> N'WA'
 
--- The first predicate is better because when some manipulation
--- is applied to filter columns server cannot use indexes effectively
+-- Перший варіант є кращим оскільки коли виконуються маніпуляції на стопці з фільтра
+-- сервер не має можливості ефективно застосувати індекси
 DECLARE @dt DATE = NULL; --'20090101';
 SELECT o.orderid,o.orderdate,o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 WHERE o.shippeddate = @dt OR (o.shippeddate IS NULL AND @dt IS NULL)
 
 DECLARE @dt DATE = NULL; --'20090101';
-SELECT o.orderid,o.orderdate,o.empid, o.shippeddate
+SELECT o.orderid,o.orderdate,o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 WHERE COALESCE(o.shippeddate,'') = COALESCE(@dt,'')
 
@@ -75,12 +75,11 @@ WHERE COALESCE(o.shippeddate,'') = COALESCE(@dt,'')
 -- 2.AND
 -- 3.OR
 
--- TRY_CAST method returns 'NULL' when operation is not finished correctly
--- So, instead of throwing an error query will not return row in result data set
--- PS. You should remember that predicates in WHERE clause is not evaluated from
--- left to right (like code execution) but they are evaluated simultaneously, so
--- you cannot say that evaluation of vt.propertytype = 'INT' will be executed as the 
--- first one and if it 'false' all remaining evaluations will be skipped 
+-- Використання функції TRY_CAST яка повертає NULL якщо операція завершується невдачею - таким
+-- чином запит не поверне стрічку яка в предикаті має NULL замість того щоб генерувати помилку
+-- Тут слід памятати що послідовність операторів в WHERE clause не виконується зліва направо
+-- чи якось по іншому - вони виконуються одночасно, тому не можна стверджувати що спочатку 
+-- відбудеться перевірка vt.propertytype = 'INT' яка не пропустить перевірку далі 
 DECLARE @values_table TABLE 
 (
 	propertytype VARCHAR(20),
@@ -95,51 +94,45 @@ SELECT vt.propertytype,vt.propertyval
 FROM @values_table vt
 WHERE vt.propertytype = 'INT' AND TRY_CAST(vt.propertyval AS INT) > 10 --CAST(vt.propertytype AS INT) > 10	  
 
--- When search is running in form of "col1 LIKE 'ABC%'" SERVER could use index for filtering column (col1)
--- but when search template is '%ABC%' SERVER could not rely on index
+-- Коли виконується пошук типу "col1 LIKE 'ABC%'" сервер ще може використати індекс для фітруємого стовпця
+-- якщо шаблон починається як '%ABC%' сервер не може покладатись на використання індекса
 -- '20070212' = ymd
--- '2007-02-12' = ymd is independent of machine location and language DATE,DATETIME2,DATETIMEOFFSET
+-- '2007-02-12' = ymd не залежна від мови для DATE,DATETIME2,DATETIMEOFFSET
 
--- Date and time formatting
+-- Форматування дати і часу
 SELECT o.orderid,o.orderdate,o.empid,o.custid 
 FROM TSQLFundamentals2008.Sales.Orders AS o
 WHERE YEAR(o.orderdate) = 2007 AND MONTH(o.orderdate) = 2;
 
--- but because of manipulation on filtration column SERVER could not rely on using of index
+-- але оскільки використовуються маніпуляції на стовпцем по якому відбувається фільтрація 
+-- sql server не може покладатись на впорядкування по індексу
 
 SELECT o.orderid,o.orderdate,o.empid,o.custid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 WHERE o.orderdate >= '20070201' AND o.orderdate < '20070301'
 
--- PS. Better to use '>=' and '<' operators when have a deal with dates instead of BETWEEN operator because
--- latter could round date value
+-- також для роботи з датами краще використовувати оператори >= i < ніж оператор BETWEEN оскільки цей оператор може закруглити значення
 
--- Sorting
--- When DISTINCT and ORDER BY clause is used in the same query - result data set MUST contain
--- columns which are placed in ORDER BY and any others
--- If query does not contain DISTINCT operator it is not mandatory for result data set to contain
--- columns which are placed in ORDER BY clause
--- Ex. If different cities are selected which may contain more than one worker and ORDER BY clause 
--- contains worker's date of birth and at the same time DOB is not included in result data set
--- SERVER will not know which row shoud be selected in DISTINCT because one city contains 
--- few workers with different DOB
-
--- BAD QUERY
+-- Сортування
+-- Якщо використовується DISTINCT а також ORDER BY в одному і тому ж запиті - результуючий набір повинен містити
+-- стовпці по яких відбувається сортування + будь які інші
+-- якщо запит не містить DISTINCT результуючий набір не обов"язково повинен містити стопці по яких відбувається сортування
+-- Напр. : якщо вибираються окремі міста в які можуть містити більше одного працівника і відбувається сортування по даті
+-- народження, при чому вона не включена в результуючий набір то сервер не знає яку саме строку вибрати в DISTINCT оскільки
+-- одне місто має декілька працівників з різними днями народження
 SELECT DISTINCT e.city
 FROM TSQLFundamentals2008.HR.Employees AS e
 WHERE e.country = N'USA' AND e.region = N'WA'
 ORDER BY e.birthdate
 
--- GOOD QUERY
+-- правильним буде запит
 SELECT DISTINCT e.city
 FROM TSQLFundamentals2008.HR.Employees AS e
 WHERE e.country = N'USA' AND e.region = N'WA'
 ORDER BY e.city
 
--- Sort of NULL values
--- when shippeddate is NULL then return 0, 
--- when shippeddate NOT NULL then return 1 
--- thus 0 will be before the 1 in ordering and therefore NOT NULL will be at the beginning
+-- сортування NULL значень
+-- коли shippeddate is null то повертається 0, якщо не NULL то 1 - таким чином 0 буде перед 1 і значення NOT NULL будуть спочатку
 SELECT o.orderid, o.shippeddate
 FROM TSQLFundamentals2008.Sales.Orders AS o
 WHERE o.custid = 20
@@ -148,10 +141,10 @@ ORDER BY CASE WHEN o.shippeddate IS NULL
 			  ELSE 0 
          END, o.shippeddate 
          
--- not determinated sort - result data set contains column on which we do ORDER BY and this column contains several duplicates
--- determined sort - values in columnd on which we do ORDER BY shouldn't contain any duplicates
+-- недетерміноване сортування - якщо в результуючому наборі буде стопець по якому відбув сортування і він має декілька однакових значень          
+-- детерміноване сортування - список ORDER BY повинен бути унікальним
 
--- Filtering by TOP and FETCH ... OFFSET
+-- Фільтрування даних за допомогою TOP i FETCH ... OFFSET
 SELECT TOP(1) o.orderid, o.orderdate, o.custid, o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 ORDER BY o.orderdate DESC
@@ -160,19 +153,19 @@ SELECT TOP(1) PERCENT o.orderid, o.orderdate, o.custid, o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 ORDER BY o.orderdate DESC
 
--- WITH TIES returns duplicates by 'orderdate' if any
+-- WITH TIES поверне дуюлюючі результати по orderdate якщо такі є
 SELECT TOP(1) WITH TIES o.orderid, o.orderdate, o.custid, o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 ORDER BY o.orderdate DESC
 
--- or make result determinated - for instance rows with greatest 'orderid' should be retrieved
+-- або додамо детермінізм : напр щоб строки з більшим orderid виграли
 SELECT TOP(3) o.orderid, o.orderdate, o.custid, o.empid
 FROM TSQLFundamentals2008.Sales.Orders AS o
 ORDER BY o.orderdate DESC,o.orderid DESC
 
 -- FETCH ... OFFSET
--- for now ORDER BY has two roles : 1) make fetch/offset aware which rows should be filtered
---								    2) оприделение сортировки представления в запросе
+-- тепер ORDER BY має дві ролі : 1) повідомити fetch/offset які строки потрібно фільтрувати
+--								 2) оприделение сортировки представления в запросе
 DECLARE @pagesize AS BIGINT = 25;
 DECLARE @pagenum AS BIGINT = 1;
 SELECT o.orderid, o.orderdate, o.custid, o.empid
@@ -186,27 +179,26 @@ FROM TSQLFundamentals2008.Sales.Orders AS o
 ORDER BY o.orderdate DESC,o.orderid DESC
 OFFSET @offset ROWS 
 
--- the most expensive goods of the first category
+-- найбільш дорогі товари першої категорії
 SELECT TOP (5) p.productid, p.unitprice
 FROM TSQLFundamentals2008.Production.Products AS p
 WHERE p.categoryid = 1         
 ORDER BY p.unitprice DESC
 
--- the previous data set result is not determinated - make it use ties
+-- оскільки попередній запит не детермінований - зробимо це за рахунок звязків
 SELECT TOP (5) WITH TIES
 	   p.productid, p.unitprice
 FROM TSQLFundamentals2008.Production.Products AS p
 WHERE p.categoryid = 1         
 ORDER BY p.unitprice DESC
 
--- and now lets make determination by using 'productid'
+-- а тепер зробимо детермінування за рахунок productid в порядку спадання
 SELECT TOP (5) p.productid, p.unitprice
 FROM TSQLFundamentals2008.Production.Products AS p
 WHERE p.categoryid = 1         
 ORDER BY p.unitprice DESC, p.productid DESC
 
--- lets create pagenation view for retrieving products with ordering by 'unitprice' and
--- determination by 'productid'
+-- перегляд товарів по 5 штук за раз, з сортуванням по ціні і розриву по productid
 DECLARE @page_size INT = 5;
 DECLARE @page_num INT = 1;
 
@@ -215,41 +207,40 @@ FROM TSQLFundamentals2008.Production.Products AS p
 ORDER BY p.unitprice DESC, p.productid DESC
 OFFSET (@page_num - 1) * @page_size ROWS FETCH NEXT @page_size ROWS ONLY
 
--- Data set combination
--- select data about days of week * 3 shifts per day
+-- Кобмбінування наборів даних
+-- вивід даних про дні тижня * 3 зміни на день
 SELECT n1.n AS theday, n2.n AS shiftno
 FROM TSQLFundamentals2008.Sales.Nums AS n1
 CROSS JOIN TSQLFundamentals2008.Sales.Nums AS n2
 WHERE n1.n <= 7 AND n2.n <= 3
 ORDER BY theday,shiftno
 
--- INNER JOIN retrieves rows which are good for predicate specified in ON
--- if predicate returns 'FALSE' or 'NULL' then rows are skipped
+-- внутрішнє зєднання повертає тільки ті строки які проходять по предикату в ON 
+-- якщо предикат повертає FALSE або NULL то строки відкидаються
 SELECT s.companyname AS supplier, s.country, p.productid, p.productname, p.unitprice
 FROM TSQLFundamentals2008.Production.Suppliers AS s
 INNER JOIN TSQLFundamentals2008.Production.Products AS p ON s.supplierid = p.supplierid
 WHERE s.country = N'Japan'
 
--- there is no difference between ON and WHERE clause for INNER JOIN clause, so you can do this way
+-- різниці між предикатами ON i WHERE для внутрішніх з"єднань немає тому можна написати наступним чином
 SELECT s.companyname AS supplier, s.country, p.productid, p.productname, p.unitprice
 FROM TSQLFundamentals2008.Production.Suppliers AS s
 INNER JOIN TSQLFundamentals2008.Production.Products AS p ON s.supplierid = p.supplierid AND 
 															s.country = N'Japan'
-
--- JOIN on itself to find managers for workers
+															
+-- самоз"єднання для того щоб знайти менеджерів для робітників
 SELECT e1.empid, 
 	   e1.firstname + e1.lastname AS [emp name],
 	   e2.firstname + e2.lastname AS [mng name]
 FROM TSQLFundamentals2008.HR.Employees AS e1
 INNER JOIN TSQLFundamentals2008.HR.Employees AS e2 ON e1.mgrid = e2.empid															
 
--- OUTER JOIN retrieve rows which are good for predicate + rows from the left/right table with 
--- right/left rows which are selected as NULLs
--- for this type of JOIN clause ON and WHERE clauses mean different things
--- WHERE play role of the filter and skip rows on FALSE or NULL
--- ON is not a filter anymore, his mission to evaluate data equality
--- put is simple data from left/rigt table will be retrieved even if in ON there is no equality
--- if in the next query change WHERE to AND then instead of suppliers from Japan we will get all the suppliers (because this table is left)
+-- зовнішні з"єднання повертають строки об'єднані по предикату + строки з лівої напр таблиці зі строками правої замінених на NULL
+-- в цьому типі з'єднання ON i WHERE мають різні ролі
+-- WHERE як і раніше має роль фільтра який відкидує строки FALSE i NULL
+-- ON в цьому випадку не є фільтром його завдання - співпадіння даних, іншими словами дані з лівої таблиці повернуться навіть
+-- якщо в предикаті ON немає співпадінь
+-- якщо в наступному запиті замінити WHERE на AND то замість поставників з Японії ми отримаємо всіх поставників (бо це ліва таблиця)
 SELECT s.companyname AS supplier, s.country, p.productid, p.productname, p.unitprice
 FROM TSQLFundamentals2008.Production.Suppliers AS s
 LEFT JOIN TSQLFundamentals2008.Production.Products AS p ON s.supplierid = p.supplierid
@@ -261,39 +252,26 @@ SELECT e1.empid,
 FROM TSQLFundamentals2008.HR.Employees AS e1
 LEFT JOIN TSQLFundamentals2008.HR.Employees AS e2 ON e1.mgrid = e2.empid	
 
--- clients who has no orders
+-- вивід клієнтів які не мають замовлень
 SELECT c.custid,c.companyname,o.orderid,o.orderdate
 FROM TSQLFundamentals2008.Sales.Customers AS c
 LEFT JOIN TSQLFundamentals2008.Sales.Orders AS o ON c.custid = o.custid
 WHERE o.orderid IS NULL
 
--- retrieve all the clients but find their orders which were made in February 2008
+-- вивести всіх клієнтів але знайти відповідні їм замовлення які були розміщені тільки в лютому 2008 
 SELECT c.custid,c.companyname,o.orderid,o.orderdate
 FROM TSQLFundamentals2008.Sales.Customers AS c
 LEFT JOIN TSQLFundamentals2008.Sales.Orders AS o ON c.custid = o.custid AND
 												    o.orderdate >= '20080201' AND 
 												    o.orderdate < '20080301'
 
--- Subquery
--- retrieve all the products which have min price in every category
+-- Звязаний підзапит
+-- потрібно повернути продукти які мають мінімальну ціну в кожній категорії
 SELECT p.categoryid, p.productid,p.productname,p.unitprice
 FROM TSQLFundamentals2008.Production.Products AS p
 WHERE p.unitprice = (SELECT MIN(p2.unitprice) 
                      FROM TSQLFundamentals2008.Production.Products AS p2
                      WHERE p.categoryid = p2.categoryid )			
-ORDER BY p.unitprice,p.categoryid 
-
--- a bit better that prev query in performance because inline JOIN query will
--- be executed just once instead of subquery which is executing for every row
--- from outer query
-SELECT p.categoryid, p.productid,p.productname,p.unitprice
-FROM TSQLFundamentals2008.Production.Products AS p
-INNER JOIN 
-(
-  SELECT p.categoryid, MIN(p.unitprice) AS minprice
-  FROM TSQLFundamentals2008.Production.Products AS p
-  GROUP BY p.categoryid
-) AS c ON c.minprice = p.unitprice AND c.categoryid = p.categoryid
 ORDER BY p.unitprice,p.categoryid 
 
 -- вертаються клієнти які розмістили свої замовлення 12 лютого 2007 року
