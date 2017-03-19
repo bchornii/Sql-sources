@@ -3,7 +3,9 @@
  */
 -- transaction 1 (dirty read)
 -- 555-9999
---SELECT * FROM TSQLFundamentals2008.HR.Employees AS e WHERE e.empid = 1
+--SELECT * 
+--FROM TSQLFundamentals2008.HR.Employees AS e 
+--WHERE e.empid = 1
 
 USE TSQLFundamentals2008
 GO
@@ -41,6 +43,8 @@ SELECT @qty = od.qty
 FROM TSQLFundamentals2008.Sales.OrderDetails AS od
 WHERE od.orderid = 10248 AND od.productid = 11
 
+PRINT @qty
+
 WAITFOR DELAY '00:00:10'
 SET @qty = @qty - 1
 
@@ -65,6 +69,10 @@ COMMIT TRAN
  WHERE od.orderid = 10248 AND od.productid = 11
  
  WAITFOR DELAY '00:00:10'
+ 
+ UPDATE TSQLFundamentals2008.Sales.OrderDetails
+ SET qty = 7
+ WHERE orderid = 10248 AND productid = 11
  
  SELECT od.qty FROM Sales.OrderDetails AS od 
  WHERE od.orderid = 10248 AND od.productid = 11
@@ -101,10 +109,10 @@ COMMIT TRAN
   WHERE od.orderid = 10248 AND od.productid = 11
   
   /*******************************************
-   * Практикум - робота з взаємоблокуванням
+   * Practicum - locks 
    *******************************************/
-   -- в транзакції всі монопольні блокування втримуються до
-   -- кінця транзакції
+   -- in transaction all exclusive locks are hold till the
+   -- end of the transaction
   USE TSQLFundamentals2008
   
   BEGIN TRAN 
@@ -115,13 +123,13 @@ COMMIT TRAN
   
   COMMIT TRAN
   
-  -- Очистка
+  -- Clean up
   UPDATE TSQLFundamentals2008.HR.Employees
   SET postalcode = N'10004'
   WHERE empid = 1
   
   /*******************************************
-   * Несумісність монопольної і shared блокувань
+   * Exclusive and shared lock are not work together
    *******************************************/
   USE TSQLFundamentals2008
   
@@ -133,7 +141,7 @@ COMMIT TRAN
   
   COMMIT TRAN
   
-  -- Очистка
+  -- Clean up
   UPDATE TSQLFundamentals2008.HR.Employees
   SET postalcode = N'10004'
   WHERE empid = 1
