@@ -5,7 +5,6 @@ GO
 --FROM TSQLFundamentals2008.Sales.Orders AS o
 --ORDER BY o.custid, YEAR(o.orderdate)
 
-
 SELECT	 e.country
 	   , YEAR(e.hiredate) AS hiredate
 	   , COUNT(*) AS numemployees  		
