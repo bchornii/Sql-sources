@@ -295,7 +295,7 @@ INNER JOIN
 ) AS c ON c.minprice = p.unitprice AND c.categoryid = p.categoryid
 ORDER BY p.unitprice,p.categoryid 
 
--- вертаються клієнти які розмістили свої замовлення 12 лютого 2007 року
+-- retrieve clients who made order February 12 2007
 SELECT c.custid,c.companyname
 FROM TSQLFundamentals2008.Sales.Customers AS c
 WHERE EXISTS (SELECT * FROM TSQLFundamentals2008.Sales.Orders AS o 
