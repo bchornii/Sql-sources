@@ -3,9 +3,14 @@
  */
 -- transaction 2 (dirty read)
 
+USE TSQLFundamentals2008
+GO
+
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED 
 
-SELECT * FROM TSQLFundamentals2008.HR.Employees AS e(NOLOCK) WHERE e.empid = 1
+SELECT * 
+FROM TSQLFundamentals2008.HR.Employees AS e(NOLOCK) 
+WHERE e.empid = 1
 
 
 /*
@@ -21,7 +26,9 @@ SELECT @qty = od.qty
 FROM TSQLFundamentals2008.Sales.OrderDetails AS od
 WHERE od.orderid = 10248 AND od.productid = 11
 
-WAITFOR DELAY '00:00:1'
+PRINT @qty
+
+WAITFOR DELAY '00:00:05'
 SET @qty = @qty - 2
 
 UPDATE TSQLFundamentals2008.Sales.orderdetails
@@ -35,7 +42,7 @@ COMMIT TRAN
  * Non repeatable read
  *******************************************/
  -- Transaction 2
-  
+ 
  UPDATE TSQLFundamentals2008.Sales.OrderDetails
  SET qty = 12
  WHERE orderid = 10248 AND productid = 11
@@ -72,7 +79,7 @@ COMMIT TRAN
   COMMIT TRAN 
   
    /*******************************************
-   * Практикум - робота з взаємоблокуванням
+   * Practicum - locks
    *******************************************/
   USE TSQLFundamentals2008  
 
@@ -81,7 +88,7 @@ COMMIT TRAN
   WHERE empid = 1   
   
   /*******************************************
-   * Несумісність монопольної і shared блокувань
+   * Exclusive and shared lock are not work together
    *******************************************/
   USE TSQLFundamentals2008
   
