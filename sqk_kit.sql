@@ -301,7 +301,7 @@ FROM TSQLFundamentals2008.Sales.Customers AS c
 WHERE EXISTS (SELECT * FROM TSQLFundamentals2008.Sales.Orders AS o 
 					   WHERE o.custid = c.custid AND o.orderdate = '20070212')					   
 
--- Табличні вирази
+-- Table expressions
 -- табличний вираз повинен бути реляційним, тому не можна застосовувати ORDER BY 
 -- виключенням є застосування конструкції ORDER BY з конструкціями TOP/FETCH...OFFSET
 -- табличні вирази не мають впливу на продуктивність
