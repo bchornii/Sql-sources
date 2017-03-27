@@ -1,2 +1,2 @@
 This is training sql kit.
-v1.4
+v1.5
