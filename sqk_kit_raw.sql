@@ -3,6 +3,7 @@ GO
 
 -- Changed from github editor. V1.2
 -- Changed from master V1.1
+-- 00:31 3/30/2017
 
 --SELECT o.custid, YEAR(o.orderdate) AS order_date
 --FROM TSQLFundamentals2008.Sales.Orders AS o
