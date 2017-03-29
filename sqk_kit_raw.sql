@@ -2,7 +2,7 @@ USE TSQLFundamentals2008;
 GO
 
 -- Changed from github editor. V1.2
--- Changed from master V1.0
+-- Changed from master V1.1
 
 --SELECT o.custid, YEAR(o.orderdate) AS order_date
 --FROM TSQLFundamentals2008.Sales.Orders AS o
