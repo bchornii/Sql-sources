@@ -10,7 +10,6 @@ GO
 -- Hello 3/30/2017 V9
 -- From github
 -- From LOCAL
--- From LOCAL
 
 --SELECT o.custid, YEAR(o.orderdate) AS order_date
 --FROM TSQLFundamentals2008.Sales.Orders AS o
