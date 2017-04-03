@@ -1,6 +1,8 @@
 ﻿USE TSQLFundamentals2008;
 GO
 
+
+-- remote
 -- local
 
 --SELECT o.custid, YEAR(o.orderdate) AS order_date
