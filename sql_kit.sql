@@ -1,7 +1,11 @@
 ﻿USE TSQLFundamentals2008;
 GO
 
-
+<<<<<<< HEAD
+dkshfksjfh
+=======
+regreherherh
+>>>>>>> origin/master
 
 --SELECT o.custid, YEAR(o.orderdate) AS order_date
 --FROM TSQLFundamentals2008.Sales.Orders AS o
