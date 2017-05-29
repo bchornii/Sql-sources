@@ -2863,3 +2863,22 @@ CROSS APPLY(
 ) ca
 WHERE c2.rn = 1
 ORDER BY c2.custid
+
+-- Create table with composite primary key and foreign keys for each col in composite key
+CREATE TABLE CustomerEmployeeDates
+(
+	EmployeeId INT NOT NULL,
+	CustomerId INT NOT NULL,
+	UpdateDateTime DATETIME NOT NULL,
+	CONSTRAINT Pk_CustomerEmployee PRIMARY KEY (EmployeeId, CustomerId),
+	
+	CONSTRAINT Fk_EmployeeId FOREIGN KEY(EmployeeId) 
+	REFERENCES Hr.Employees(empid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE,
+	
+	CONSTRAINT Fk_CustomerId FOREIGN KEY(CustomerId)
+	REFERENCES sales.Customers(custid)
+	ON DELETE CASCADE
+	ON UPDATE CASCADE 
+)
